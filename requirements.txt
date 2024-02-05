@@ -1,0 +1,10 @@
+numpy
+pandas
+git+https://github.com/aplbrain/neuvue-client.git
+joblib 
+nglui
+caveclient
+cloud-volume
+tqdm
+ipykernel
+backoff
