@@ -16,9 +16,9 @@ from nglui.statebuilder import (
     BoundingBoxMapper
     )
 
-from neuvue_queue_task_assignment.neuvue_constants import NEUVUE_NG_URL, IMAGE, SEG, MINNIE_RESOLUTION
+from utils.constants import NEUVUE_NG_URL, IMAGE, SEG, MINNIE_RESOLUTION
 from itertools import repeat
-from neuvue_queue_task_assignment.chunkedgraph_utils import *
+from utils.chunkedgraph_utils import *
 import random
 
 
@@ -252,12 +252,6 @@ def add_basic_ng_states_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_
     coords = list(df[pt_position_str].values)
     df['states'] = list(map(build_basic_ng_state, seg_ids, coords))
 
-# def add_basic_ng_states_with_seg_colors_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position'):
-#     seg_ids = list(df[root_id_str].values)
-#     coords = list(df[pt_position_str].values)
-#     df['states'] = list(map(build_basic_ng_state_with_seg_colors, seg_ids, coords))
-#     return df
-
 
 def add_basic_ng_states_with_anno_layers_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', anno_names=['annotations'], anno_colors=['#FB00FF']):
     seg_ids = list(df[root_id_str].values)
@@ -434,14 +428,16 @@ def build_basic_ng_state_with_anno_layer_and_points(seg_id, coordinate, anno_poi
     anno_layer = AnnotationLayerConfig(name=anno_name, color='#FB00FF', linked_segmentation_layer='seg', mapping_rules=points,  tags=tags)
 
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options).render_state(anno_point_df, return_as='dict', url_prefix=NEUVUE_NG_URL)
-    state['selectedLayer']['layer'] = 'seg'
-    state['layers'][1].update({'tab': 'graph'})
+    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options).render_state(anno_point_df, return_as='json', url_prefix=NEUVUE_NG_URL)
+    state_dict = json.loads(state)
 
-    if 'jsonStateServer' not in state.keys():
-        state["jsonStateServer"] = "https://global.daf-apis.com/nglstate/api/v1/post"
+    state_dict['selectedLayer']['layer'] = 'seg'
+    state_dict['layers'][1].update({'tab': 'graph'})
 
-    state = json.dumps(state)
+    if 'jsonStateServer' not in state_dict.keys():
+        state_dict["jsonStateServer"] = "https://global.daf-apis.com/nglstate/api/v1/post"
+
+    state = json.dumps(state_dict)
     return state
 
 def build_agents_state(
