@@ -4,8 +4,8 @@ An example forced choice tasks that asks the proofreader to determine if a multi
 
 | Task Namespace          | `forcedChoiceExample` |
 |-------------------------|---------------|
-| Submission Method       | Submit Button |
-| CAVE Required?          | No            |
+| Submission Method       | forcedChoiceExampleButtons |
+| CAVE Required?          | Yes            |
 | External Data Required? | No            |
 
 
