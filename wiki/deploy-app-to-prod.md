@@ -62,7 +62,7 @@ System Requirements:
 * Add all the table schemas by running `python manage.py migrate`
 * Set same the five environment variables in Elastic Beanstalk. The relevant page is Elastic Beanstalk environment home page > Configuration > Updates, monitoring, and logging > Edit > Scroll to the bottom of the page > Environment properties
 * Go back to MySQL Workbench and add a row to each of three tables
-  * `socialaccount_socialapp`: oauth client id and secret columns come from [Create new OAuth 2.0 Client ID](#create-new-oauth-2.0-client-id)
+  * `socialaccount_socialapp`: oauth client id and secret columns come from [Create new OAuth 2.0 Client ID](#create-new-oauth-20-client-id)
   * `django_site`: FQDN in two columns: domain and name
   * `socialaccount_socialapp_sites`: connect social app to django site with the table id numbers from the two entries just created
 * Add `SITE_ID=<table ID for django_site>` to settings.py locally
