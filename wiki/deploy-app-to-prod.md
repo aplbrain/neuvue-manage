@@ -18,7 +18,7 @@ System Requirements:
 ### Create new OAuth 2.0 Client ID
 * Open GCP console. We will set up Google authentication here so that users can use a Gmail account to log in.
 * Navigate to APIs & Services > Credentials > Create Credentials > OAuth Client ID
-  * Use fully qualified domain name (FQDN) for authorized JS origin and <FQDN>/accounts/google/login/callback/ as authorized redirect URI
+  * Use fully qualified domain name (FQDN) for authorized JS origin and FQDN/accounts/google/login/callback/ as authorized redirect URI
 * Save client ID and client secret for later 
 
 ### Install EB CLI
@@ -43,17 +43,17 @@ System Requirements:
 * `conda create --name neuvue python=3.9`
 * `conda activate neuvue`
 * `pip install -r requirements.txt`
-* In `.ebextensions/https.config` change the cert to the one you created earlier during [Set up new domain](#set-up-new-domain)
+* In `.ebextensions/https.config` change the cert ARN on line 3 to the one you created earlier during [Set up new domain](#set-up-new-domain). This can be found on the certificate's details webpage.
 * Run `eb init` to connect your local app to the environment you made in the console. Use `--profile` if you've defined multiple profiles in `~/.aws/config`
 * Add domain to list of allowed hosts in `settings.py`
 
 ### Create RDS Database
 * Return to the AWS Console and navigate to the RDS homepage. The last thing to configure is a very small relational database for the Django admin console.
 * Click Create Database. Once again, most of the defaults are fine. The database will be very small. Reference the existing Boss deploy with questions or ask Danny. Be careful not to choose a vpc subnet, to open db to all internet traffic, and to set a memorable password
-* Get off the VPN if you are on it
+* Disconnect from the VPN if you are on it
 * Open MySQL Workbench and connect to the new RDS instance. To connect you will need the RDS hostname and port (found under Endpoint & Port on the RDS instance's console page) and the username and password you created during the instance setup. If you forgot the username and password, they can be found under Configuration > Master username/Master password.
-* Add a new database inside the RDS instance once you are connected by executing the command `CREATE DATABASE <db-name>;` ebdb is a good name
-* Set temporary local environment variables to point your local NeuVue clone to the new database
+* Add a new database inside the RDS instance once you are connected by executing the command `CREATE DATABASE <db-name>;` in the MySQL Workbench query editor. ebdb is a good name
+* Return to local terminal. Set temporary local environment variables to point your local NeuVue clone to the new database. This can be done with syntax `export $<ENV_VAR_NAME>=<ENV_VAR_VALUE>`
   * RDS_DB_NAME: whatever you just named it, e.g. ebdb
   * RDS_HOSTNAME: same as MySQL Workbench setting
   * RDS_PORT: same as MySQL Workbench setting
@@ -67,7 +67,7 @@ System Requirements:
   * `socialaccount_socialapp_sites`: connect social app to django site with the table id numbers from the two entries just created
 * Add `SITE_ID=<table ID for django_site>` to settings.py locally
 * `eb deploy` locally
-* If site related errors persist do an entire environment rebuild to ensure that db cache is not causing errors
+* If site related errors persist do an entire environment rebuild to ensure that RDS cache is not causing errors
 * Create account to access admin dashboard with local `python manage.py createsuperuser`, make sure same environment variables are still set
   
 ### Other configurations that must be done in the admin console
