@@ -70,11 +70,15 @@ System Requirements:
 * If site related errors persist do an entire environment rebuild to ensure that db cache is not causing errors
 * Create account to access admin dashboard with local `python manage.py createsuperuser`, make sure same environment variables are still set
   
-### Other Admin Console things I had to configure
-* Log in as myself to create an account for myself
-* Give myself admin and super user privileges via the admin console while logged in as the superuser account created during [Create RDS Database](#create-rds-database)
-* Create group AuthorizedUsers and add myself to it
-* Add button groups before adding a new namespace - I think some of these should ship with NeuVue. We need to decide which ones
+### Other configurations that must be done in the admin console
+* Navigate to FQDN
+* Log in as yourself via Google to create an account for yourself
+* Log out
+* Navigate to FQDN/admin and log in as the superuser account created during [Create RDS Database](#create-rds-database)
+* The next two steps will authorize you to access every NeuVue tool available. Give these permissions to other users carefully.
+* Give your new account staff and super user privileges. This can be done at Users > your username > Staff status, Superuser status
+* Create group AuthorizedUsers and add yourself to it. This can be done at Groups > Add Group. No additional permissions are necessary; the authorization is performed in the source code.
+* Add button groups before adding a new namespace - we need to decide which ones are general enough for every deploy to have. At minimum, make a SubmitButton button group. This button group has all the default button group settings.
   
 ### Todos
 * Need to fix redirect url in `settings.py` for token; is currently hardcoded
