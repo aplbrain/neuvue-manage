@@ -2,7 +2,8 @@
 (WIP)
 
 System Requirements:
-* Amazon Web Services (AWS) account (TODO: add estimate for monthly cost)
+* Amazon Web Services (AWS) account
+  * Monthly cost will be determined by the size of the EC2 instances that are provisioned with Elastic Beanstalk. We have historically chosen t2.xlarge, which costs about $500/month on Elastic Beanstalk.
 * Google Cloud Platform (GCP) account (just for OAuth, no billed services will be used)
 * Git
 * Miniconda
