@@ -16,11 +16,16 @@ from nglui.statebuilder import (
     BoundingBoxMapper
     )
 
-from utils.constants import NEUVUE_NG_URL, IMAGE, SEG, MINNIE_RESOLUTION
+from utils.constants import NEUVUE_NG_URL, SPELUNKER_URL, IMAGE, SEG, MINNIE_RESOLUTION
 from itertools import repeat
 from utils.chunkedgraph_utils import *
 import random
 
+ng_url = SPELUNKER_URL
+
+def set_ng_url(url):
+    global ng_url
+    ng_url = url
 
 @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=3)
 def extract_multicut_points(state, seg_layer='seg'):
@@ -190,7 +195,7 @@ def build_basic_ng_state(seg_id, coordinate, img_src=IMAGE, seg_src=SEG, em_zoom
     )
 
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=[img_layer, seg_layer], view_kws=view_options).render_state(return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = StateBuilder(layers=[img_layer, seg_layer], view_kws=view_options).render_state(return_as='dict', url_prefix=ng_url)
     state['layers'][1].update({'tab': 'graph'})
 
     if 'jsonStateServer' not in state.keys():
@@ -237,7 +242,7 @@ def build_basic_ng_state_with_seg_colors(seg_id_list, seg_color_list, coordinate
     )
 
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=[img_layer, seg_layer], view_kws=view_options).render_state(return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = StateBuilder(layers=[img_layer, seg_layer], view_kws=view_options).render_state(return_as='dict', url_prefix=ng_url)
     state['layers'][1].update({'tab': 'graph'})
 
     if 'jsonStateServer' not in state.keys():
@@ -253,24 +258,24 @@ def add_basic_ng_states_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_
     df['states'] = list(map(build_basic_ng_state, seg_ids, coords))
 
 
-def add_basic_ng_states_with_anno_layers_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', anno_names=['annotations'], anno_colors=['#FB00FF']):
+def add_basic_ng_states_with_anno_layers_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', anno_names=['annotations'], anno_colors=['#FB00FF'], client=None):
     seg_ids = list(df[root_id_str].values)
     coords = list(df[pt_position_str].values)
-    df['states'] = list(map(build_basic_ng_state_with_anno_layers, seg_ids, coords, repeat(anno_names), repeat(anno_colors)))
+    df['states'] = list(map(build_basic_ng_state_with_anno_layers, seg_ids, coords, repeat(anno_names), repeat(anno_colors), repeat(client)))
 
 
-def add_basic_ng_states_with_anno_layer_and_points_from_ground_truth_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', state_str='ng_states', anno_point_layer_name='annos', anno_name='annotations', tags=[]):
+def add_basic_ng_states_with_anno_layer_and_points_from_ground_truth_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', state_str='ng_states', anno_point_layer_name='annos', anno_name='annotations', tags=[], client=None):
     seg_ids = list(df[root_id_str].values)
     coords = list(df[pt_position_str].values)
     states = list(df[state_str].values)
     annos = [get_annotations(state, anno_point_layer_name) for state in states]
-    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points, seg_ids, coords, annos, repeat(anno_name), repeat(tags)))
+    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points, seg_ids, coords, annos, repeat(anno_name), repeat(tags), repeat(client)))
 
-def add_basic_ng_states_with_anno_layer_and_points_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', anno_name='annotations', annos_str='annos', tags=[]):
+def add_basic_ng_states_with_anno_layer_and_points_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', anno_name='annotations', annos_str='annos', tags=[], client=None):
     seg_ids = list(df[root_id_str].values)
     coords = list(df[pt_position_str].values)
     annos = [pd.DataFrame(data={'annos': x}) for x in df[annos_str].values]
-    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points, seg_ids, coords, annos, repeat(anno_name), repeat(tags)))
+    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points, seg_ids, coords, annos, repeat(anno_name), repeat(tags), repeat(client)))
 
 def add_basic_agents_states(
     df, 
@@ -328,15 +333,15 @@ def add_basic_endpoint_states(
         ))
 
 
-def add_basic_ng_states_with_anno_layer_points_description_from_ground_truth_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', state_str='ng_states', anno_point_layer_name='annos', anno_name='annotations'):
+def add_basic_ng_states_with_anno_layer_points_description_from_ground_truth_to_df(df, root_id_str='pt_root_id', pt_position_str='pt_position', state_str='ng_states', anno_point_layer_name='annos', anno_name='annotations', client=None):
     seg_ids = list(df[root_id_str].values)
     coords = list(df[pt_position_str].values)
     states = list(df[state_str].values)
     annos = [get_annotations_and_descriptions(state, anno_point_layer_name) for state in states]
-    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points_description, seg_ids, coords, annos, repeat(anno_name)))
+    df['states'] = list(map(build_basic_ng_state_with_anno_layer_and_points_description, seg_ids, coords, annos, repeat(anno_name), repeat(client)))
 
 
-def build_basic_ng_state_with_anno_layers(seg_id, coordinate, anno_names=['annotations'], anno_colors=['#FB00FF'],img_src=IMAGE, seg_src=SEG, em_zoom=26):
+def build_basic_ng_state_with_anno_layers(seg_id, coordinate, anno_names=['annotations'], anno_colors=['#FB00FF'],img_src=IMAGE, seg_src=SEG, em_zoom=26, client=None):
     '''
 
     :param seg_id: segmentation id
@@ -344,6 +349,7 @@ def build_basic_ng_state_with_anno_layers(seg_id, coordinate, anno_names=['annot
     :param img_src: img url
     :param seg_src: segmentation url
     :param em_zoom: zoom level for image data
+    :param client: cave client for spelunker-encoded anno layer
     :return: neuroglancer state
     '''
     # Create ImageLayerConfig
@@ -376,7 +382,7 @@ def build_basic_ng_state_with_anno_layers(seg_id, coordinate, anno_names=['annot
         anno_layer = AnnotationLayerConfig(name=anno_names[i], color=anno_colors[i], linked_segmentation_layer='seg')
         layers.append(anno_layer)
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=layers, view_kws=view_options).render_state(return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = StateBuilder(layers=layers, view_kws=view_options, client=client).render_state(return_as='dict', url_prefix=ng_url)
     state['selectedLayer']['layer'] = anno_names[0]
 
     if 'jsonStateServer' not in state.keys():
@@ -386,7 +392,7 @@ def build_basic_ng_state_with_anno_layers(seg_id, coordinate, anno_names=['annot
     return state
 
 
-def build_basic_ng_state_with_anno_layer_and_points(seg_id, coordinate, anno_point_df, anno_name='annotations', tags=[], img_src=IMAGE, seg_src=SEG, em_zoom=26):
+def build_basic_ng_state_with_anno_layer_and_points(seg_id, coordinate, anno_point_df, anno_name='annotations', tags=[], img_src=IMAGE, seg_src=SEG, em_zoom=26, client=None):
     '''
     :param seg_id: segmentation id
     :param coordinate: coordinate to center the view on
@@ -394,6 +400,7 @@ def build_basic_ng_state_with_anno_layer_and_points(seg_id, coordinate, anno_poi
     :param img_src: img url
     :param seg_src: segmentation url
     :param em_zoom: zoom level for image data
+    :param client: cave client for spelunker-encoded anno layer
     :return: neuroglancer state
     '''
     # Create ImageLayerConfig
@@ -428,7 +435,7 @@ def build_basic_ng_state_with_anno_layer_and_points(seg_id, coordinate, anno_poi
     anno_layer = AnnotationLayerConfig(name=anno_name, color='#FB00FF', linked_segmentation_layer='seg', mapping_rules=points,  tags=tags)
 
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options).render_state(anno_point_df, return_as='json', url_prefix=NEUVUE_NG_URL)
+    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options, client=client).render_state(anno_point_df, return_as='json', url_prefix=ng_url)
     state_dict = json.loads(state)
 
     state_dict['selectedLayer']['layer'] = 'seg'
@@ -508,7 +515,7 @@ def build_agents_state(
     base_state = StateBuilder(layers=base_layers, view_kws=view_options)
 
     chained_state = ChainedStateBuilder([base_state, bounding_box_state])
-    state = chained_state.render_state([anno_point_df, bounding_box_df], return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = chained_state.render_state([anno_point_df, bounding_box_df], return_as='dict', url_prefix=ng_url)
     state['selectedLayer']['layer'] = 'seg'
     
     hidden_segments_list = hidden_segments
@@ -606,7 +613,7 @@ def build_endpoint_state(
     base_state = StateBuilder(layers=base_layers, view_kws=view_options)
 
     chained_state = ChainedStateBuilder([base_state, bounding_box_state])
-    state = chained_state.render_state([anno_point_df, bounding_box_df], return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = chained_state.render_state([anno_point_df, bounding_box_df], return_as='dict', url_prefix=ng_url)
     state['selectedLayer']['layer'] = 'seg'
     
     #state['layers'][1].update({'tab': 'render'})
@@ -623,7 +630,7 @@ def build_endpoint_state(
     return state
 
 
-def build_basic_ng_state_with_anno_layer_and_points_description(seg_id, coordinate, anno_point_df, anno_name='annotations', img_src=IMAGE, seg_src=SEG, em_zoom=26):
+def build_basic_ng_state_with_anno_layer_and_points_description(seg_id, coordinate, anno_point_df, anno_name='annotations', img_src=IMAGE, seg_src=SEG, em_zoom=26, client=None):
     '''
 
     :param seg_id: segmentation id
@@ -632,6 +639,7 @@ def build_basic_ng_state_with_anno_layer_and_points_description(seg_id, coordina
     :param img_src: img url
     :param seg_src: segmentation url
     :param em_zoom: zoom level for image data
+    :param client: cave client for spelunker-encoded anno layers
     :return: neuroglancer state
     '''
     # Create ImageLayerConfig
@@ -663,7 +671,7 @@ def build_basic_ng_state_with_anno_layer_and_points_description(seg_id, coordina
     anno_layer = AnnotationLayerConfig(name=anno_name, color='#FB00FF', linked_segmentation_layer='seg', mapping_rules=points)
 
     view_options = {'position': coordinate, 'zoom_image': em_zoom}
-    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options).render_state(anno_point_df, return_as='dict', url_prefix=NEUVUE_NG_URL)
+    state = StateBuilder(layers=[img_layer, seg_layer, anno_layer], view_kws=view_options, client=client).render_state(anno_point_df, return_as='dict', url_prefix=ng_url)
     state['selectedLayer']['layer'] = anno_name
 
     if 'jsonStateServer' not in state.keys():
